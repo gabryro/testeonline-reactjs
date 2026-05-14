@@ -1,39 +1,37 @@
 import { RouterProvider } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useEffect } from 'react';
 import { router } from '@/router';
-import { queryClient } from '@/config/queryClient';
-import { useAppStore } from '@/store/appStore';
-import { configService } from '@/services/config.service';
-import '@/config/i18n';
+import { useAppSelector } from '@/store/hooks';
+import { useGetAppConfigQuery } from '@/store/api/configApi';
+import i18n from '@/config/i18n';
 
 function ThemeSync() {
-  const { theme } = useAppStore();
-
+  const theme = useAppSelector((s) => s.app.theme);
   useEffect(() => {
     document.documentElement.setAttribute('data-bs-theme', theme);
   }, [theme]);
+  return null;
+}
 
+function LanguageSync() {
+  const language = useAppSelector((s) => s.app.language);
+  useEffect(() => {
+    if (i18n.language !== language) i18n.changeLanguage(language);
+  }, [language]);
   return null;
 }
 
 function AppConfigLoader() {
-  const { setLimits } = useAppStore();
-
-  useEffect(() => {
-    configService.getAppConfig()
-      .then((config) => setLimits(config))
-      .catch(() => {});
-  }, [setLimits]);
-
+  useGetAppConfigQuery();
   return null;
 }
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <ThemeSync />
+      <LanguageSync />
       <AppConfigLoader />
       <RouterProvider router={router} />
       <Toaster
@@ -43,6 +41,6 @@ export default function App() {
           style: { fontFamily: 'inherit' },
         }}
       />
-    </QueryClientProvider>
+    </>
   );
 }

@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(npm run *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\GIT\\\\TESTEONLINE\\\\testeonline\" -Recurse -Directory)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(head *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\GIT\\\\TESTEONLINE\\\\testeonline\" -Recurse -Directory | Where-Object { $_.Name -eq \"controllers\" -or $_.Name -eq \"routes\" } | Select-Object -ExpandProperty FullName)",
+      "Bash(npx tsc *)",
+      "Bash(git add *)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem *)",
+      "Bash(Select-Object -First 50)",
+      "Bash(Format-Table FullName)",
+      "Bash(xargs grep -l \"questionTypeId\")",
+      "Bash(findstr /n \"duration\\\\|save-quiz\\\\|isPublic\\\\|questionTimeLimit\\\\|notifyOnCompletion\" \"C:\\\\GIT\\\\TESTEONLINE\\\\testeonline\\\\src\\\\app\\\\services\\\\quiz.service.ts\")",
+      "Bash(findstr /n \"duration\" \"C:\\\\GIT\\\\TESTEONLINE\\\\testeonline\\\\src\\\\app\\\\modules\\\\user\\\\add-test\\\\quiz\\\\quiz.component.ts\")",
+      "Bash(Select-String -Path \"C:\\\\GIT\\\\TESTEONLINE\\\\testeonline\\\\src\\\\app\\\\services\\\\quiz.service.ts\" -Pattern \"duration|save-quiz|isPublic|questionTimeLimit|notifyOnCompletion\")",
+      "Bash(Select-Object -First 30)",
+      "Bash(Format-Table LineNumber, Line -AutoSize)",
+      "Bash(Sort-Object)",
+      "Bash(npm install *)",
+      "Bash(npm uninstall *)",
+      "Bash(mkdir \"C:\\\\GIT\\\\TESTEONLINE\\\\testeonline-reactjs\\\\src\\\\store\\\\slices\")",
+      "Bash(mkdir \"C:\\\\GIT\\\\TESTEONLINE\\\\testeonline-reactjs\\\\src\\\\store\\\\api\")",
+      "Bash(Remove-Item \"C:\\\\GIT\\\\TESTEONLINE\\\\testeonline-reactjs\\\\src\\\\store\\\\authStore.ts\" -Force)",
+      "Bash(Remove-Item \"C:\\\\GIT\\\\TESTEONLINE\\\\testeonline-reactjs\\\\src\\\\store\\\\appStore.ts\" -Force)",
+      "Bash(Remove-Item \"C:\\\\GIT\\\\TESTEONLINE\\\\testeonline-reactjs\\\\src\\\\config\\\\queryClient.ts\" -Force)",
+      "Bash(Write-Host \"Deleted old files\")",
+      "Bash(xargs grep -l \"oauth/google\\\\|oauth/github\")",
+      "Bash(xargs grep -l \"/oauth/\")",
+      "Bash(xargs grep -l \"login.*google\\\\|login.*github\\\\|social\")",
+      "Bash(xargs grep -l \"oauth\\\\|loginWithOAuth\")",
+      "Bash(Select-Object -First 10)"
+    ]
+  }
+}

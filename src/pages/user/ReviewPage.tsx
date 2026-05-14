@@ -1,32 +1,41 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { quizService } from '@/services/quiz.service';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { env } from '@/config/env';
 import type { QuizListItem, QuizToken } from '@/models';
+import {
+  useGetMyQuizzesQuery,
+  useDeleteQuizMutation,
+  useCloneQuizMutation,
+  useCreateTokenMutation,
+  useUpdateTokenMutation,
+  useDeleteTokenMutation,
+} from '@/store/api/quizApi';
 
-function KeyRow({ quizId, token, onDeleted }: { quizId: number; token: QuizToken; onDeleted: () => void }) {
+function KeyRow({ quizId, token }: { quizId: number; token: QuizToken }) {
   const { t } = useTranslation();
-  const qc = useQueryClient();
-
-  const toggleMutation = useMutation({
-    mutationFn: () => quizService.updateToken(token.id, token.start === 1 ? 0 : 1),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['my-quizzes'] }),
-    onError: () => toast.error(t('quiz.keyError')),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: () => quizService.deleteToken(quizId, token.token),
-    onSuccess: () => { onDeleted(); qc.invalidateQueries({ queryKey: ['my-quizzes'] }); },
-    onError: () => toast.error(t('quiz.keyError')),
-  });
+  const [updateToken, { isLoading: toggling }] = useUpdateTokenMutation();
+  const [deleteToken, { isLoading: deleting }] = useDeleteTokenMutation();
 
   const copyLink = () => {
     const url = `${env.baseUrl}/token?code=${token.token}`;
     navigator.clipboard.writeText(url).then(() => toast.success(t('quiz.linkCopied')));
+  };
+
+  const handleToggle = () => {
+    updateToken({ keyId: token.id, start: token.start === 1 ? 0 : 1 })
+      .unwrap()
+      .catch(() => toast.error(t('quiz.keyError')));
+  };
+
+  const handleDelete = () => {
+    if (confirm(t('quiz.confirmDeleteKey'))) {
+      deleteToken({ quizId, token: token.token })
+        .unwrap()
+        .catch(() => toast.error(t('quiz.keyError')));
+    }
   };
 
   return (
@@ -52,8 +61,8 @@ function KeyRow({ quizId, token, onDeleted }: { quizId: number; token: QuizToken
           </button>
           <button
             className={`btn btn-sm ${token.start === 1 ? 'btn-outline-warning' : 'btn-outline-success'}`}
-            onClick={() => toggleMutation.mutate()}
-            disabled={toggleMutation.isPending}
+            onClick={handleToggle}
+            disabled={toggling}
             title={token.start === 1 ? t('quiz.deactivate') : t('quiz.activate')}
           >
             <i className={`bi bi-${token.start === 1 ? 'pause' : 'play'}`} />
@@ -67,8 +76,8 @@ function KeyRow({ quizId, token, onDeleted }: { quizId: number; token: QuizToken
           </Link>
           <button
             className="btn btn-outline-danger btn-sm"
-            onClick={() => { if (confirm(t('quiz.confirmDeleteKey'))) deleteMutation.mutate(); }}
-            disabled={deleteMutation.isPending}
+            onClick={handleDelete}
+            disabled={deleting}
             title={t('quiz.deleteKey')}
           >
             <i className="bi bi-trash" />
@@ -81,44 +90,49 @@ function KeyRow({ quizId, token, onDeleted }: { quizId: number; token: QuizToken
 
 function QuizCard({ quiz }: { quiz: QuizListItem }) {
   const { t } = useTranslation();
-  const qc = useQueryClient();
   const [expanded, setExpanded] = useState(false);
   const [newDesc, setNewDesc] = useState('');
   const [creatingKey, setCreatingKey] = useState(false);
 
-  const deleteMutation = useMutation({
-    mutationFn: () => quizService.deleteQuiz(quiz.id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['my-quizzes'] }); toast.success(t('quiz.deleted')); },
-    onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      toast.error(msg || t('quiz.deleteError'));
-    },
-  });
+  const [deleteQuiz, { isLoading: deleting }] = useDeleteQuizMutation();
+  const [cloneQuiz, { isLoading: cloning }] = useCloneQuizMutation();
+  const [createToken, { isLoading: creatingToken }] = useCreateTokenMutation();
 
-  const cloneMutation = useMutation({
-    mutationFn: () => quizService.cloneQuiz(quiz.id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['my-quizzes'] }); toast.success(t('quiz.cloned')); },
-  });
+  const handleDelete = () => {
+    if (confirm(t('quiz.confirmDelete'))) {
+      deleteQuiz(quiz.id)
+        .unwrap()
+        .then(() => toast.success(t('quiz.deleted')))
+        .catch((err: { data?: { message?: string } }) =>
+          toast.error(err?.data?.message || t('quiz.deleteError')),
+        );
+    }
+  };
 
-  const createKeyMutation = useMutation({
-    mutationFn: () => quizService.createToken(quiz.id, newDesc, 1),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['my-quizzes'] });
-      toast.success(t('quiz.keyCreated'));
-      setNewDesc('');
-      setCreatingKey(false);
-    },
-    onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      toast.error(msg || t('quiz.keyError'));
-    },
-  });
+  const handleClone = () => {
+    cloneQuiz(quiz.id)
+      .unwrap()
+      .then(() => toast.success(t('quiz.cloned')))
+      .catch(() => toast.error(t('quiz.deleteError')));
+  };
+
+  const handleCreateKey = () => {
+    createToken({ quizId: quiz.id, description: newDesc, start: 1 })
+      .unwrap()
+      .then(() => {
+        toast.success(t('quiz.keyCreated'));
+        setNewDesc('');
+        setCreatingKey(false);
+      })
+      .catch((err: { data?: { message?: string } }) =>
+        toast.error(err?.data?.message || t('quiz.keyError')),
+      );
+  };
 
   const totalResponses = quiz.tokens?.reduce((s, k) => s + (k.responses ?? 0), 0) ?? 0;
 
   return (
     <div className="card border-0 shadow-sm mb-3">
-      {/* Quiz header */}
       <div className="card-body">
         <div className="d-flex align-items-center gap-3">
           <div className="flex-grow-1 min-w-0">
@@ -140,8 +154,8 @@ function QuizCard({ quiz }: { quiz: QuizListItem }) {
             </button>
             <button
               className="btn btn-outline-secondary btn-sm"
-              onClick={() => cloneMutation.mutate()}
-              disabled={cloneMutation.isPending}
+              onClick={handleClone}
+              disabled={cloning}
               title={t('quiz.clone')}
             >
               <i className="bi bi-files" />
@@ -156,8 +170,8 @@ function QuizCard({ quiz }: { quiz: QuizListItem }) {
             <button
               className="btn btn-outline-danger btn-sm"
               title={t('common.delete')}
-              disabled={deleteMutation.isPending}
-              onClick={() => { if (confirm(t('quiz.confirmDelete'))) deleteMutation.mutate(); }}
+              disabled={deleting}
+              onClick={handleDelete}
             >
               <i className="bi bi-trash" />
             </button>
@@ -165,7 +179,6 @@ function QuizCard({ quiz }: { quiz: QuizListItem }) {
         </div>
       </div>
 
-      {/* Keys panel */}
       {expanded && (
         <div className="border-top">
           <div className="p-3">
@@ -187,15 +200,15 @@ function QuizCard({ quiz }: { quiz: QuizListItem }) {
                   placeholder={t('quiz.keyDescriptionPlaceholder')}
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && createKeyMutation.mutate()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreateKey()}
                   autoFocus
                 />
                 <button
                   className="btn btn-sm btn-primary flex-shrink-0"
-                  onClick={() => createKeyMutation.mutate()}
-                  disabled={createKeyMutation.isPending}
+                  onClick={handleCreateKey}
+                  disabled={creatingToken}
                 >
-                  {createKeyMutation.isPending
+                  {creatingToken
                     ? <span className="spinner-border spinner-border-sm" />
                     : t('common.save')}
                 </button>
@@ -225,7 +238,6 @@ function QuizCard({ quiz }: { quiz: QuizListItem }) {
                         key={token.id}
                         quizId={quiz.id}
                         token={token}
-                        onDeleted={() => {}}
                       />
                     ))}
                   </tbody>
@@ -243,10 +255,7 @@ export function ReviewPage() {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
-  const { data: quizzes, isLoading } = useQuery({
-    queryKey: ['my-quizzes'],
-    queryFn: quizService.getMyQuizzes,
-  });
+  const { data: quizzes, isLoading } = useGetMyQuizzesQuery();
 
   const filtered = quizzes?.filter((q) =>
     q.name?.toLowerCase().includes(search.toLowerCase())

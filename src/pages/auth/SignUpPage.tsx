@@ -6,7 +6,8 @@ import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { authService } from '@/services/auth.service';
-import { useAuthStore } from '@/store/authStore';
+import { useAppDispatch } from '@/store/hooks';
+import { setAuth } from '@/store/slices/authSlice';
 
 const schema = z.object({
   name: z.string().min(2),
@@ -23,7 +24,7 @@ type FormData = z.infer<typeof schema>;
 export function SignUpPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { setAuth } = useAuthStore();
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -35,7 +36,13 @@ export function SignUpPage() {
     try {
       const res = await authService.register(data);
       if (res.jwt) {
-        setAuth(res.jwt, res.uid || '', res.name || '', false, res.siteKey);
+        dispatch(setAuth({
+          token: res.jwt,
+          uid: res.uid || '',
+          name: res.name || '',
+          isAdmin: false,
+          siteKey: res.siteKey,
+        }));
         navigate('/user-home', { replace: true });
       } else {
         toast.success(t('auth.checkEmail'));

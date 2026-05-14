@@ -13,7 +13,7 @@ export const quizService = {
       .then((r) => r.data.quiz),
 
   saveQuiz: (quiz: Partial<Quiz>): Promise<{ qid: number }> =>
-    http.post<{ qid: number }>('/save-quiz', { quiz, quizId: quiz.id })
+    http.post<{ qid: number }>('/save-quiz', { quiz: JSON.stringify(quiz), quizId: quiz.id ?? 0 })
       .then((r) => r.data),
 
   deleteQuiz: (quizId: number): Promise<void> =>

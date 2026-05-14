@@ -1,18 +1,25 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/store/authStore';
-import { useAppStore } from '@/store/appStore';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { logout, toggleTheme, setLanguage } from '@/store';
+import { baseApi } from '@/store/api/baseApi';
+import i18n from '@/config/i18n';
 
 export function Navbar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { isLoggedIn, name, isAdmin, logout } = useAuthStore();
-  const { theme, toggleTheme, language, setLanguage } = useAppStore();
+  const dispatch = useAppDispatch();
+  const isLoggedIn = useAppSelector((s) => s.auth.isLoggedIn);
+  const name = useAppSelector((s) => s.auth.name);
+  const isAdmin = useAppSelector((s) => s.auth.isAdmin);
+  const theme = useAppSelector((s) => s.app.theme);
+  const language = useAppSelector((s) => s.app.language);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
+    dispatch(baseApi.util.resetApiState());
     navigate('/signin');
   };
 
@@ -68,7 +75,11 @@ export function Navbar() {
             <select
               className="form-select form-select-sm"
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              onChange={(e) => {
+                const lang = e.target.value;
+                dispatch(setLanguage(lang));
+                void i18n.changeLanguage(lang);
+              }}
               style={{ width: 'auto' }}
             >
               {languages.map((l) => (
@@ -78,7 +89,7 @@ export function Navbar() {
 
             <button
               className="btn btn-outline-secondary btn-sm"
-              onClick={toggleTheme}
+              onClick={() => dispatch(toggleTheme())}
               title={theme === 'dark' ? t('theme.light') : t('theme.dark')}
             >
               <i className={`bi bi-${theme === 'dark' ? 'sun' : 'moon'}`} />

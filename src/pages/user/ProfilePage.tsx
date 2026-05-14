@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { useAuthStore } from '@/store/authStore';
+import { useAppSelector } from '@/store/hooks';
 import { authService } from '@/services/auth.service';
 
 const passwordSchema = z.object({
@@ -20,7 +20,8 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 
 export function ProfilePage() {
   const { t } = useTranslation();
-  const { name, uid } = useAuthStore();
+  const name = useAppSelector((s) => s.auth.name);
+  const uid = useAppSelector((s) => s.auth.uid);
   const [changingPwd, setChangingPwd] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<PasswordForm>({
@@ -30,7 +31,6 @@ export function ProfilePage() {
   const onPasswordSubmit = async (data: PasswordForm) => {
     setChangingPwd(true);
     try {
-      // Backend expects { uid, jwt (injected), password (old), newPassword }
       await authService.changePassword(data.oldPassword, data.newPassword);
       toast.success(t('profile.passwordChanged'));
       reset();

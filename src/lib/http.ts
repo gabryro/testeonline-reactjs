@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { env } from '@/config/env';
+import { store } from '@/store/store';
+import { logout } from '@/store/slices/authSlice';
 
 export const http = axios.create({
   baseURL: env.apiUrl,
@@ -21,24 +23,16 @@ export const publicHttp = axios.create({
 });
 
 http.interceptors.request.use((config) => {
-  const stored = localStorage.getItem('auth-storage');
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored) as { state?: { token?: string; uid?: string } };
-      const { token, uid } = parsed.state ?? {};
-      if (token && uid) {
-        config.headers.Authorization = `Bearer ${token}`;
-        // Backend reads uid+jwt from POST body for every authenticated endpoint
-        if (
-          config.method?.toLowerCase() === 'post' &&
-          config.data !== undefined &&
-          !(config.data instanceof FormData)
-        ) {
-          config.data = { uid, jwt: token, ...config.data };
-        }
-      }
-    } catch {
-      // ignore
+  const { token, uid } = store.getState().auth;
+
+  if (token && uid) {
+    config.headers.Authorization = `Bearer ${token}`;
+    if (
+      config.method?.toLowerCase() === 'post' &&
+      config.data !== undefined &&
+      !(config.data instanceof FormData)
+    ) {
+      config.data = { uid, jwt: token, ...config.data };
     }
   }
   return config;
@@ -48,7 +42,7 @@ http.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('auth-storage');
+      store.dispatch(logout());
       window.location.href = '/signin';
     }
     return Promise.reject(error);

@@ -1,8 +1,8 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
+import { useAppSelector } from '@/store/hooks';
 
 export function AuthGuard() {
-  const { isLoggedIn } = useAuthStore();
+  const isLoggedIn = useAppSelector((s) => s.auth.isLoggedIn);
   const location = useLocation();
 
   if (!isLoggedIn) {

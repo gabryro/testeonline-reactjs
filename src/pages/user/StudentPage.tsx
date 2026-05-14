@@ -60,7 +60,7 @@ export function StudentPage() {
       setQuizId(qid);
       setStudentId(sid);
       setQuiz(quizData);
-      if (quizData.durationSecs > 0) setTimeLeft(quizData.durationSecs);
+      if (quizData.duration > 0) setTimeLeft(quizData.duration);
       setPhase('taking');
     } catch {
       toast.error(t('student.startError'));

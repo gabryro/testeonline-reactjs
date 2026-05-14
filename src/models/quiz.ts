@@ -3,17 +3,17 @@ export type QuestionTypeId = 1 | 2 | 3 | 4 | 5 | 6;
 export const QUESTION_TYPE_LABELS: Record<QuestionTypeId, string> = {
   1: 'Single choice',
   2: 'Multiple choice',
-  3: 'Ordering',
+  3: 'Fill-in-blank',
   4: 'Text / Essay',
-  5: 'Matching',
-  6: 'Ranking',
+  5: 'Ordering',
+  6: 'Matching',
 };
 
 export interface Option {
   id?: number;
   name: string;
-  isAnswer?: number;    // 0|1 — hidden from students (type=0)
-  rightAnswer?: string; // hidden from students
+  isAnswer?: number;    // 0|1 for MC; order position (1-based) for ordering/matching
+  rightAnswer?: string; // expected text for fill-in-blank (hidden from students)
   selected?: number;    // 0|1 — used when submitting answers
 }
 
@@ -23,7 +23,7 @@ export interface Question {
   questionTypeId: QuestionTypeId;
   score: number;
   options: Option[];
-  answerText?: string;  // essay answer (type 4)
+  answerText?: string;  // expected essay answer (type 4, for AI grading)
 }
 
 export interface Quiz {
@@ -33,12 +33,15 @@ export interface Quiz {
   allowBack: boolean;
   allowReview: boolean;
   autoMove: boolean;
-  durationSecs: number; // 0 = unlimited; stored as seconds
+  duration: number;           // in seconds (backend); UI shows minutes
   requiredAll: boolean;
   shuffleQuestions: boolean;
   shuffleOptions: boolean;
   showClock: boolean;
   showPager: boolean;
+  isPublic?: boolean;
+  questionTimeLimit?: number; // per-question limit in seconds (0 = none)
+  notifyOnCompletion?: boolean;
   questions: Question[];
 }
 
@@ -60,7 +63,7 @@ export interface QuizListItem {
 export interface QuizResult {
   id?: number;
   name?: string;          // from student.name in DB
-  studentName?: string;   // alias used in some contexts
+  studentName?: string;
   createdAt?: string;
   endAt?: string;
   answers?: StudentAnswerRecord[];

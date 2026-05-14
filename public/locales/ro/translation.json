@@ -101,7 +101,16 @@
     "registrationFailed": "Înregistrare eșuată.",
     "checkEmail": "Verifică emailul pentru confirmare.",
     "emailConfirmed": "Email confirmat cu succes!",
-    "confirmFailed": "Confirmare eșuată."
+    "confirmFailed": "Confirmare eșuată.",
+    "continueWithGoogle": "Continuă cu Google",
+    "continueWithGitHub": "Continuă cu GitHub",
+    "continueWithFacebook": "Continuă cu Facebook",
+    "continueWithMicrosoft": "Continuă cu Microsoft",
+    "orEmail": "sau",
+    "oauthLoading": "Conectare în curs...",
+    "oauthError": "Autentificare eșuată",
+    "oauthInvalid": "Autentificarea a eșuat. Sesiunea este invalidă sau a expirat.",
+    "oauthFailed": "Autentificarea a eșuat. Încearcă din nou."
   },
   "dashboard": {
     "welcome": "Bun venit, {{name}}!",
@@ -196,7 +205,10 @@
     "generating": "Se generează...",
     "generate": "Generează",
     "aiAdded": "{{count}} întrebări adăugate!",
-    "aiError": "Generare AI eșuată. Verifică cheia Gemini."
+    "aiError": "Generare AI eșuată. Verifică cheia Gemini.",
+    "public": "Public",
+    "questionTimeLimit": "Limită pe întrebare",
+    "notifyOnCompletion": "Notifică la finalizare"
   },
   "addCourse": {
     "newTitle": "Curs nou",

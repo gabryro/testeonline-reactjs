@@ -1,18 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { adminService } from '@/services/admin.service';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import type { AdminUser } from '@/models/admin';
+import { useGetAdminStatsQuery, useGetAdminUsersQuery, useUpdateUserMutation } from '@/store/api/adminApi';
 
 export function AdminDashboardPage() {
   const { t } = useTranslation();
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['admin-stats'],
-    queryFn: adminService.getStats,
-  });
+  const { data: stats, isLoading: statsLoading } = useGetAdminStatsQuery();
 
   return (
     <div>
@@ -50,24 +46,18 @@ export function AdminDashboardPage() {
 
 export function AdminUsersPage() {
   const { t } = useTranslation();
-  const qc = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin-users', page, search],
-    queryFn: () => adminService.getUsers(page, 20, search),
-  });
+  const { data, isLoading } = useGetAdminUsersQuery({ page, limit: 20, search });
+  const [updateUser] = useUpdateUserMutation();
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<AdminUser> }) =>
-      adminService.updateUser(id, updates),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-users'] });
-      toast.success(t('admin.userUpdated'));
-    },
-    onError: () => toast.error(t('admin.updateError')),
-  });
+  const handleUpdate = (id: string, updates: Partial<AdminUser>) => {
+    updateUser({ id, data: updates })
+      .unwrap()
+      .then(() => toast.success(t('admin.userUpdated')))
+      .catch(() => toast.error(t('admin.updateError')));
+  };
 
   return (
     <div>
@@ -122,14 +112,14 @@ export function AdminUsersPage() {
                         <button
                           className={`btn btn-sm ${user.is_admin ? 'btn-outline-secondary' : 'btn-outline-danger'}`}
                           title={user.is_admin ? t('admin.removeAdmin') : t('admin.makeAdmin')}
-                          onClick={() => updateMutation.mutate({ id: user.id, updates: { is_admin: !user.is_admin } })}
+                          onClick={() => handleUpdate(user.id, { is_admin: !user.is_admin })}
                         >
                           <i className={`bi bi-${user.is_admin ? 'shield-x' : 'shield-check'}`} />
                         </button>
                         <button
                           className={`btn btn-sm ${user.active ? 'btn-outline-warning' : 'btn-outline-success'}`}
                           title={user.active ? t('admin.deactivate') : t('admin.activate')}
-                          onClick={() => updateMutation.mutate({ id: user.id, updates: { active: !user.active } })}
+                          onClick={() => handleUpdate(user.id, { active: !user.active })}
                         >
                           <i className={`bi bi-${user.active ? 'person-x' : 'person-check'}`} />
                         </button>
@@ -141,7 +131,6 @@ export function AdminUsersPage() {
             </table>
           </div>
 
-          {/* Pagination */}
           {data && data.total > 20 && (
             <nav>
               <ul className="pagination justify-content-center">

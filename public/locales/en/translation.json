@@ -101,7 +101,16 @@
     "registrationFailed": "Registration failed.",
     "checkEmail": "Check your email for confirmation.",
     "emailConfirmed": "Email confirmed successfully!",
-    "confirmFailed": "Confirmation failed."
+    "confirmFailed": "Confirmation failed.",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithGitHub": "Continue with GitHub",
+    "continueWithFacebook": "Continue with Facebook",
+    "continueWithMicrosoft": "Continue with Microsoft",
+    "orEmail": "or",
+    "oauthLoading": "Signing you in...",
+    "oauthError": "Authentication failed",
+    "oauthInvalid": "Authentication failed. The session is invalid or has expired.",
+    "oauthFailed": "Authentication failed. Please try again."
   },
   "dashboard": {
     "welcome": "Welcome, {{name}}!",
@@ -196,7 +205,10 @@
     "generating": "Generating...",
     "generate": "Generate",
     "aiAdded": "{{count}} questions added!",
-    "aiError": "AI generation failed. Check your Gemini key."
+    "aiError": "AI generation failed. Check your Gemini key.",
+    "public": "Public",
+    "questionTimeLimit": "Per-question limit",
+    "notifyOnCompletion": "Notify on completion"
   },
   "addCourse": {
     "newTitle": "New course",

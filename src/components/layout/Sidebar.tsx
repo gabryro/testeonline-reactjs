@@ -1,10 +1,10 @@
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/store/authStore';
+import { useAppSelector } from '@/store/hooks';
 
 export function Sidebar() {
   const { t } = useTranslation();
-  const { isAdmin } = useAuthStore();
+  const isAdmin = useAppSelector((s) => s.auth.isAdmin);
 
   const navItems = [
     { to: '/user-home', icon: 'bi-house', label: t('sidebar.dashboard') },

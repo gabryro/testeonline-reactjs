@@ -1,30 +1,26 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { questionBankService } from '@/services/questionBank.service';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { QUESTION_TYPE_LABELS } from '@/models';
 import type { Question } from '@/models';
+import { useGetQuestionBankQuery, useDeleteQuestionMutation } from '@/store/api/questionBankApi';
 
 export function QuestionBankPage() {
   const { t } = useTranslation();
-  const qc = useQueryClient();
   const [search, setSearch] = useState('');
 
-  const { data: questions, isLoading } = useQuery({
-    queryKey: ['question-bank'],
-    queryFn: questionBankService.getQuestionBank,
-  });
+  const { data: questions, isLoading } = useGetQuestionBankQuery();
+  const [deleteQuestion] = useDeleteQuestionMutation();
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => questionBankService.deleteQuestion(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['question-bank'] });
-      toast.success(t('questionBank.deleted'));
-    },
-    onError: () => toast.error(t('questionBank.deleteError')),
-  });
+  const handleDelete = (id: number) => {
+    if (confirm(t('questionBank.confirmDelete'))) {
+      deleteQuestion(id)
+        .unwrap()
+        .then(() => toast.success(t('questionBank.deleted')))
+        .catch(() => toast.error(t('questionBank.deleteError')));
+    }
+  };
 
   const filtered = questions?.filter((q: Question) =>
     q.name?.toLowerCase().includes(search.toLowerCase())
@@ -65,9 +61,7 @@ export function QuestionBankPage() {
               </div>
               <button
                 className="btn btn-outline-danger btn-sm"
-                onClick={() => {
-                  if (confirm(t('questionBank.confirmDelete'))) deleteMutation.mutate(q.id!);
-                }}
+                onClick={() => handleDelete(q.id!)}
               >
                 <i className="bi bi-trash" />
               </button>

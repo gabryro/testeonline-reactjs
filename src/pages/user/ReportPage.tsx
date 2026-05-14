@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { quizService } from '@/services/quiz.service';
 import { aiService } from '@/services/ai.service';
+import { quizService } from '@/services/quiz.service';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { useGetMyQuizzesQuery, useGetResultsQuery } from '@/store/api/quizApi';
 import type { QuizListItem, QuizToken, QuizResult, Quiz, StudentAnswerRecord } from '@/models';
 
 function TimeDiff({ from, to }: { from?: string; to?: string }) {
@@ -72,10 +72,7 @@ function ResultsTable({
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState<number | null>(null);
 
-  const { data: results, isLoading } = useQuery({
-    queryKey: ['quiz-results', quizId, tokenId],
-    queryFn: () => quizService.getResults(quizId, tokenId),
-  });
+  const { data: results, isLoading } = useGetResultsQuery({ quizId, tokenId });
 
   if (isLoading) return <LoadingSpinner />;
   if (!results?.length) {
@@ -193,10 +190,7 @@ export function ReportPage() {
   const [loadedQuiz, setLoadedQuiz] = useState<Quiz | null>(null);
   const [loadingQuiz, setLoadingQuiz] = useState(false);
 
-  const { data: quizzes, isLoading: quizzesLoading } = useQuery({
-    queryKey: ['my-quizzes'],
-    queryFn: quizService.getMyQuizzes,
-  });
+  const { data: quizzes, isLoading: quizzesLoading } = useGetMyQuizzesQuery();
 
   const selectedQuiz = quizzes?.find((q) => q.id === Number(quizIdParam));
 
@@ -212,13 +206,11 @@ export function ReportPage() {
     }
   };
 
-  // Load quiz detail when a quiz + token are selected
   const handleSelectToken = (token: QuizToken, quiz: QuizListItem) => {
     setSelectedTokenId(token.id);
     if (!loadedQuiz || loadedQuiz.id !== quiz.id) loadQuizDetail(quiz.id);
   };
 
-  // ── No quiz selected → show quiz list ───────────────────────────
   if (!quizIdParam) {
     return (
       <div>
@@ -255,7 +247,6 @@ export function ReportPage() {
     );
   }
 
-  // ── Quiz selected → show token list + results ────────────────────
   return (
     <div>
       <div className="d-flex align-items-center gap-2 mb-4">
@@ -271,7 +262,6 @@ export function ReportPage() {
 
       {selectedQuiz && (
         <div className="row g-4">
-          {/* Token selector */}
           <div className="col-md-3">
             <div className="card border-0 shadow-sm">
               <div className="card-header bg-transparent fw-semibold small text-muted">
@@ -299,7 +289,6 @@ export function ReportPage() {
             </div>
           </div>
 
-          {/* Results panel */}
           <div className="col-md-9">
             {!selectedTokenId ? (
               <div className="card border-0 shadow-sm">

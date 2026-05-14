@@ -37,4 +37,10 @@ export const authService = {
       contactFormMessage: message,
       contactFormSubjects: subject,
     }).then((r) => r.data),
+
+  exchangeOAuthCode: (provider: string, code: string, codeVerifier: string) => {
+    const redirectUri = `${window.location.origin}/oauth-callback/${provider}`;
+    return http.post<AuthResponse>(`/oauth/${provider}/token`, { code, codeVerifier, redirectUri })
+      .then((r) => r.data);
+  },
 };

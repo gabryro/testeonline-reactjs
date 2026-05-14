@@ -1,20 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/store/authStore';
-import { quizService } from '@/services/quiz.service';
+import { useAppSelector } from '@/store/hooks';
+import { useGetMyQuizzesQuery } from '@/store/api/quizApi';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 export function UserHomePage() {
   const { t } = useTranslation();
-  const { name } = useAuthStore();
+  const name = useAppSelector((s) => s.auth.name);
 
-  const quizzesQuery = useQuery({
-    queryKey: ['my-quizzes'],
-    queryFn: quizService.getMyQuizzes,
-  });
+  const { data: quizzes, isLoading } = useGetMyQuizzesQuery();
 
-  const totalResponses = quizzesQuery.data?.reduce(
+  const totalResponses = quizzes?.reduce(
     (sum, q) => sum + (q.tokens?.reduce((s, k) => s + (k.responses ?? 0), 0) ?? 0),
     0,
   ) ?? 0;
@@ -31,7 +27,7 @@ export function UserHomePage() {
         {[
           {
             label: t('dashboard.quizzes'),
-            value: quizzesQuery.data?.length ?? '—',
+            value: quizzes?.length ?? '—',
             icon: 'bi-clipboard2-check',
             color: 'primary',
             link: '/quiz-review',
@@ -92,11 +88,11 @@ export function UserHomePage() {
           <Link to="/quiz-review" className="btn btn-link btn-sm p-0">{t('common.viewAll')}</Link>
         </div>
         <div className="card-body p-0">
-          {quizzesQuery.isLoading ? (
+          {isLoading ? (
             <div className="p-3"><LoadingSpinner /></div>
           ) : (
             <div className="list-group list-group-flush">
-              {quizzesQuery.data?.slice(0, 5).map((quiz) => (
+              {quizzes?.slice(0, 5).map((quiz) => (
                 <div key={quiz.id} className="list-group-item d-flex justify-content-between align-items-center">
                   <div>
                     <div className="fw-semibold">{quiz.name}</div>
@@ -116,7 +112,7 @@ export function UserHomePage() {
                   </div>
                 </div>
               ))}
-              {!quizzesQuery.data?.length && (
+              {!quizzes?.length && (
                 <div className="p-4 text-center text-muted">
                   <p>{t('dashboard.noQuizzes')}</p>
                   <Link to="/add-quiz" className="btn btn-primary btn-sm">
