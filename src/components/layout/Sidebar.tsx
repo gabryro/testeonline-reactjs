@@ -17,7 +17,7 @@ export function Sidebar() {
   ];
 
   return (
-    <div className="sidebar bg-white border-end d-flex flex-column" style={{ width: 250, minHeight: '100vh' }}>
+    <div className="sidebar bg-body-secondary border-end d-flex flex-column" style={{ width: 250, minHeight: '100vh' }}>
       <div className="p-3 border-bottom">
         <span className="fw-bold text-primary fs-5">TesteOnline</span>
       </div>
@@ -28,7 +28,7 @@ export function Sidebar() {
               <NavLink
                 to={item.to}
                 className={({ isActive }) =>
-                  `nav-link d-flex align-items-center gap-2 ${isActive ? 'active' : 'text-dark'}`
+                  `nav-link d-flex align-items-center gap-2 ${isActive ? 'active' : 'text-body'}`
                 }
               >
                 <i className={`bi ${item.icon}`} />
@@ -41,7 +41,7 @@ export function Sidebar() {
               <NavLink
                 to="/admin"
                 className={({ isActive }) =>
-                  `nav-link d-flex align-items-center gap-2 ${isActive ? 'active' : 'text-dark'}`
+                  `nav-link d-flex align-items-center gap-2 ${isActive ? 'active' : 'text-body'}`
                 }
               >
                 <i className="bi bi-shield-check" />

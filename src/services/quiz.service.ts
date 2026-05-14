@@ -1,40 +1,53 @@
-import { http } from '@/lib/http';
-import type { Quiz, QuizInfo, QuizKey, QuizResult } from '@/models';
+import { http, publicHttp } from '@/lib/http';
+import type { Quiz, QuizListItem, QuizResult } from '@/models';
 
 export const quizService = {
-  saveQuiz: (quiz: Quiz) =>
-    http.post<{ id: string }>('/save-quiz', quiz).then((r) => r.data),
+  // ── Teacher endpoints (authenticated) ──────────────────────────────
 
-  getMyQuizzes: () =>
-    http.post<QuizInfo[]>('/get-quizzes', {}).then((r) => r.data),
+  getMyQuizzes: (): Promise<QuizListItem[]> =>
+    http.post<{ quizzes: QuizListItem[] }>('/quizzes', {})
+      .then((r) => r.data.quizzes ?? []),
 
-  getPublicQuizzes: (page = 1, limit = 20, search = '') =>
-    http.post<{ quizzes: QuizInfo[]; total: number }>('/get-public-quizzes', { page, limit, search }).then((r) => r.data),
+  getQuiz: (quizId: number): Promise<Quiz> =>
+    http.post<{ quiz: Quiz }>('/get-quiz', { quizId, type: 1 })
+      .then((r) => r.data.quiz),
 
-  deleteQuiz: (id: string) =>
-    http.post('/delete-quiz', { id }).then((r) => r.data),
+  saveQuiz: (quiz: Partial<Quiz>): Promise<{ qid: number }> =>
+    http.post<{ qid: number }>('/save-quiz', { quiz, quizId: quiz.id })
+      .then((r) => r.data),
 
-  cloneQuiz: (id: string) =>
-    http.post<{ id: string }>('/clone-quiz', { id }).then((r) => r.data),
+  deleteQuiz: (quizId: number): Promise<void> =>
+    http.post('/delete-quiz', { quizId }).then(() => undefined),
 
-  getResults: (quizId: string) =>
-    http.post<QuizResult[]>('/results', { quizId }).then((r) => r.data),
+  cloneQuiz: (quizId: number): Promise<{ qid: number }> =>
+    http.post<{ qid: number }>('/clone-quiz', { quizId })
+      .then((r) => r.data),
 
-  generateToken: (quizId: string, config?: Partial<QuizKey>) =>
-    http.post<QuizKey>('/quiz-token', { quizId, ...config }).then((r) => r.data),
+  getResults: (quizId: number, tokenId: number): Promise<QuizResult[]> =>
+    http.post<{ results: QuizResult[] }>('/results', { quizId, tokenId })
+      .then((r) => r.data.results ?? []),
 
-  deleteToken: (tokenId: string) =>
-    http.post('/delete-token', { id: tokenId }).then((r) => r.data),
+  createToken: (quizId: number, description: string, start = 0): Promise<{ token: string }> =>
+    http.post<{ token: string }>('/quiz-token', { quizId, description, start })
+      .then((r) => r.data),
 
-  updateToken: (token: Partial<QuizKey>) =>
-    http.post<QuizKey>('/update-token', token).then((r) => r.data),
+  deleteToken: (quizId: number, token: string): Promise<void> =>
+    http.post('/delete-token', { quizId, token }).then(() => undefined),
 
-  setVisibility: (id: string, isPublic: boolean) =>
-    http.post('/set-quiz-visibility', { id, isPublic }).then((r) => r.data),
+  updateToken: (keyId: number, start: number): Promise<void> =>
+    http.post('/update-token', { keyId, start }).then(() => undefined),
 
-  searchSuggest: (query: string) =>
-    http.post<string[]>('/search-suggest', { query }).then((r) => r.data),
+  // ── Student endpoints (no auth required) ──────────────────────────
 
-  resolveToken: (token: string) =>
-    http.post<{ type: 'quiz' | 'course'; data: unknown }>('/resolve-token', { token }).then((r) => r.data),
+  startQuiz: (name: string, key: string): Promise<{ quizId: number; studentId: number }> =>
+    publicHttp.post<{ response: { quizId: number; studentId: number } }>('/save-key-start', { name, key })
+      .then((r) => r.data.response),
+
+  getPublicQuiz: (quizId: number): Promise<Quiz> =>
+    publicHttp.post<{ quiz: Quiz }>('/get-quiz', { quizId, type: 0 })
+      .then((r) => r.data.quiz),
+
+  submitResults: (quizId: number, studentId: number, quiz: Partial<Quiz>): Promise<Quiz | null> =>
+    publicHttp.post<{ response: Quiz | null }>('/save-results', { quizId, studentId, quiz })
+      .then((r) => r.data.response),
 };

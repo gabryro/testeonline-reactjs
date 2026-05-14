@@ -1,73 +1,74 @@
+export type QuestionTypeId = 1 | 2 | 3 | 4 | 5 | 6;
+
+export const QUESTION_TYPE_LABELS: Record<QuestionTypeId, string> = {
+  1: 'Single choice',
+  2: 'Multiple choice',
+  3: 'Ordering',
+  4: 'Text / Essay',
+  5: 'Matching',
+  6: 'Ranking',
+};
+
 export interface Option {
-  id?: string;
-  text: string;
-  isCorrect: boolean;
-  orderIndex?: number;
+  id?: number;
+  name: string;
+  isAnswer?: number;    // 0|1 — hidden from students (type=0)
+  rightAnswer?: string; // hidden from students
+  selected?: number;    // 0|1 — used when submitting answers
 }
 
 export interface Question {
-  id?: string;
-  text: string;
-  type: 'single' | 'multiple' | 'text' | 'formula';
+  id?: number;
+  name: string;
+  questionTypeId: QuestionTypeId;
+  score: number;
   options: Option[];
-  points?: number;
-  explanation?: string;
-  orderIndex?: number;
-  mediaUrl?: string;
+  answerText?: string;  // essay answer (type 4)
 }
 
-export interface QuizConfig {
-  timeLimit?: number;
-  shuffleQuestions?: boolean;
-  shuffleOptions?: boolean;
-  showResults?: boolean;
-  showCorrectAnswers?: boolean;
-  maxAttempts?: number;
-  passingScore?: number;
-}
-
-export interface QuizInfo {
-  id?: string;
-  title: string;
-  description?: string;
-  subject?: string;
-  isPublic?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-  questionCount?: number;
-  authorName?: string;
-  authorId?: string;
-}
-
-export interface Quiz extends QuizInfo {
+export interface Quiz {
+  id?: number;
+  name: string;
+  description: string;
+  allowBack: boolean;
+  allowReview: boolean;
+  autoMove: boolean;
+  durationSecs: number; // 0 = unlimited; stored as seconds
+  requiredAll: boolean;
+  shuffleQuestions: boolean;
+  shuffleOptions: boolean;
+  showClock: boolean;
+  showPager: boolean;
   questions: Question[];
-  config?: QuizConfig;
 }
 
-export interface QuizKey {
-  id?: string;
-  key: string;
-  quizId: string;
-  maxStudents?: number;
-  expiresAt?: string;
-  studentCount?: number;
-  active?: boolean;
+export interface QuizToken {
+  id: number;
+  token: string;
+  description: string;
+  start: number;      // 0|1
+  responses: number;  // student count
 }
 
-export interface StudentAnswer {
-  questionId: string;
-  selectedOptions?: string[];
-  textAnswer?: string;
+export interface QuizListItem {
+  id: number;
+  name: string;
+  description?: string;
+  tokens: QuizToken[];
 }
 
 export interface QuizResult {
-  id?: string;
-  quizId: string;
-  studentName?: string;
-  score?: number;
-  maxScore?: number;
-  percentage?: number;
-  answers?: StudentAnswer[];
-  submittedAt?: string;
-  timeSpent?: number;
+  id?: number;
+  name?: string;          // from student.name in DB
+  studentName?: string;   // alias used in some contexts
+  createdAt?: string;
+  endAt?: string;
+  answers?: StudentAnswerRecord[];
+}
+
+export interface StudentAnswerRecord {
+  questionId: number;
+  optionId?: number;
+  selected?: number;
+  answerText?: string;
 }

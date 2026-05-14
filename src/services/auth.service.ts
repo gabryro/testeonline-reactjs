@@ -11,30 +11,30 @@ export const authService = {
   checkSession: () =>
     http.post<AuthResponse>('/session', {}).then((r) => r.data),
 
-  checkJwt: () =>
-    http.post<AuthResponse>('/checkJWT', {}).then((r) => r.data),
+  checkJwt: (jwt: string) =>
+    http.post<AuthResponse>('/checkJWT', { jwt }).then((r) => r.data),
 
   requestPasswordReset: (email: string) =>
     http.post('/user/reset-password', { email }).then((r) => r.data),
 
-  resetPasswordWithToken: (token: string, password: string) =>
-    http.post('/changePasswordWithURL', { token, password }).then((r) => r.data),
+  // Backend expects { jwt, password }
+  resetPasswordWithToken: (jwt: string, password: string) =>
+    http.post('/changePasswordWithURL', { jwt, password }).then((r) => r.data),
 
+  // Backend expects { uid, jwt (injected by interceptor), password (old), newPassword }
   changePassword: (oldPassword: string, newPassword: string) =>
-    http.post('/change-password', { oldPassword, newPassword }).then((r) => r.data),
+    http.post('/change-password', { password: oldPassword, newPassword }).then((r) => r.data),
 
-  confirmEmail: (token: string) =>
-    http.post('/confirm-email', { token }).then((r) => r.data),
+  // Backend expects { jwt }
+  confirmEmail: (jwt: string) =>
+    http.post('/confirm-email', { jwt }).then((r) => r.data),
 
-  oauthToken: (provider: string, code: string, codeVerifier?: string) =>
-    http.post(`/oauth/${provider}/token`, { code, codeVerifier }).then((r) => r.data),
-
-  saveGeminiKey: (key: string) =>
-    http.post('/user/gemini-key', { key }).then((r) => r.data),
-
-  getGeminiKeyStatus: () =>
-    http.get<{ hasKey: boolean }>('/user/gemini-key').then((r) => r.data),
-
-  contact: (name: string, email: string, message: string) =>
-    http.post('/contact', { name, email, message }).then((r) => r.data),
+  // Backend expects contactForm* field names
+  contact: (name: string, email: string, message: string, subject = '') =>
+    http.post('/contact', {
+      contactFormName: name,
+      contactFormEmail: email,
+      contactFormMessage: message,
+      contactFormSubjects: subject,
+    }).then((r) => r.data),
 };

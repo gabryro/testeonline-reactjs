@@ -1,25 +1,25 @@
 import { http } from '@/lib/http';
+import type { Question } from '@/models';
 
 export const aiService = {
-  generateQuiz: (topic: string, questionCount: number, language?: string) =>
-    http.post('/ai/generate-quiz', { topic, questionCount, language }).then((r) => r.data),
+  // Backend expects { topic, count } — max 20 questions
+  generateQuiz: (topic: string, count: number): Promise<{ questions: Question[] }> =>
+    http.post('/ai/generate-quiz', { topic, count }).then((r) => r.data),
 
-  generateQuizFromFile: (formData: FormData) =>
-    http.post('/ai/generate-quiz-from-file', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }).then((r) => r.data),
+  // Backend expects { message, quizName?, history? }
+  chat: (
+    message: string,
+    quizName?: string,
+    history?: Array<{ role: string; content: string }>,
+  ): Promise<{ reply: string }> =>
+    http.post('/ai/chat', { message, quizName, history }).then((r) => r.data),
 
-  ocrImage: (formData: FormData) =>
-    http.post<{ text: string }>('/ai/ocr-image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }).then((r) => r.data),
-
-  chat: (quizId: string, message: string, history?: unknown[]) =>
-    http.post<{ reply: string }>('/ai/chat', { quizId, message, history }).then((r) => r.data),
-
-  generateCourseSummary: (content: string) =>
-    http.post<{ summary: string }>('/ai/generate-course-summary', { content }).then((r) => r.data),
-
-  generateCourseSchema: (topic: string) =>
-    http.post('/ai/generate-course-schema', { topic }).then((r) => r.data),
+  // Backend expects { question, answer, expectedAnswer?, score? }
+  grade: (
+    question: string,
+    answer: string,
+    expectedAnswer?: string,
+    score?: number,
+  ): Promise<{ grade: { score: number; percentage: number; feedback: string } }> =>
+    http.post('/ai/grade', { question, answer, expectedAnswer, score }).then((r) => r.data),
 };

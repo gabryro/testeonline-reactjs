@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { questionBankService } from '@/services/questionBank.service';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { QUESTION_TYPE_LABELS } from '@/models';
 import type { Question } from '@/models';
 
 export function QuestionBankPage() {
@@ -17,7 +18,7 @@ export function QuestionBankPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => questionBankService.deleteQuestion(id),
+    mutationFn: (id: number) => questionBankService.deleteQuestion(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['question-bank'] });
       toast.success(t('questionBank.deleted'));
@@ -26,7 +27,7 @@ export function QuestionBankPage() {
   });
 
   const filtered = questions?.filter((q: Question) =>
-    q.text?.toLowerCase().includes(search.toLowerCase())
+    q.name?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -57,9 +58,9 @@ export function QuestionBankPage() {
           <div key={q.id} className="card border-0 shadow-sm">
             <div className="card-body d-flex align-items-start gap-3">
               <div className="flex-grow-1">
-                <div className="fw-semibold">{q.text}</div>
+                <div className="fw-semibold">{q.name}</div>
                 <div className="text-muted small">
-                  {q.type} • {q.options?.length ?? 0} {t('quiz.options')}
+                  {QUESTION_TYPE_LABELS[q.questionTypeId]} &bull; {q.options?.length ?? 0} {t('quiz.options')}
                 </div>
               </div>
               <button

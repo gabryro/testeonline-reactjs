@@ -29,7 +29,7 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+    <nav className="navbar navbar-expand-lg bg-body shadow-sm sticky-top border-bottom">
       <div className="container">
         <Link className="navbar-brand fw-bold text-primary" to="/">
           TesteOnline
