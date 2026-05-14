@@ -10,6 +10,8 @@ import {
   REGISTER,
 } from 'redux-persist';
 import authReducer from './slices/authSlice';
+import appReducer from './slices/appSlice';
+import { baseApi } from './api/baseApi';
 
 // redux-persist/lib/storage CJS default doesn't interop with Vite ESM — use a direct wrapper instead
 const storage = {
@@ -17,8 +19,6 @@ const storage = {
   setItem: (key: string, value: string) => Promise.resolve(localStorage.setItem(key, value)),
   removeItem: (key: string) => Promise.resolve(localStorage.removeItem(key)),
 };
-import appReducer from './slices/appSlice';
-import { baseApi } from './api/baseApi';
 
 const rootReducer = combineReducers({
   auth: persistReducer({ key: 'auth', storage }, authReducer),
