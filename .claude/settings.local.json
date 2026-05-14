@@ -33,7 +33,8 @@
       "Bash(xargs grep -l \"/oauth/\")",
       "Bash(xargs grep -l \"login.*google\\\\|login.*github\\\\|social\")",
       "Bash(xargs grep -l \"oauth\\\\|loginWithOAuth\")",
-      "Bash(Select-Object -First 10)"
+      "Bash(Select-Object -First 10)",
+      "Bash(git *)"
     ]
   }
 }
