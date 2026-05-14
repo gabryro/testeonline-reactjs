@@ -5,6 +5,8 @@ export const questionBankApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getQuestionBank: builder.query<Question[], void>({
       query: () => ({ url: '/question-bank', method: 'POST', body: {} }),
+      transformResponse: (res: { questions: Question[] } | Question[]) =>
+        Array.isArray(res) ? res : (res.questions ?? []),
       providesTags: ['QuestionBank'],
     }),
 
