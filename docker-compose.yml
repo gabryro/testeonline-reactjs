@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - '80:80'
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Uncomment if running backend alongside frontend
+  # backend:
+  #   image: testeonline-backend:latest
+  #   ports:
+  #     - '8080:8080'
+  #   restart: unless-stopped
+  #   networks:
+  #     - app-network
+
+networks:
+  app-network:
+    driver: bridge

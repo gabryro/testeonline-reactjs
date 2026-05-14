@@ -1,0 +1,124 @@
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '@/store/authStore';
+import { quizService } from '@/services/quiz.service';
+import { courseService } from '@/services/course.service';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
+export function UserHomePage() {
+  const { t } = useTranslation();
+  const { name } = useAuthStore();
+
+  const quizzesQuery = useQuery({
+    queryKey: ['my-quizzes'],
+    queryFn: quizService.getMyQuizzes,
+  });
+
+  const coursesQuery = useQuery({
+    queryKey: ['my-courses'],
+    queryFn: courseService.getMyCourses,
+  });
+
+  return (
+    <div>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="fw-bold mb-1">{t('dashboard.welcome', { name })}</h2>
+          <p className="text-muted mb-0">{t('dashboard.subtitle')}</p>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="row g-3 mb-4">
+        {[
+          {
+            label: t('dashboard.quizzes'),
+            value: quizzesQuery.data?.length ?? '—',
+            icon: 'bi-clipboard2-check',
+            color: 'primary',
+            link: '/quiz-review',
+          },
+          {
+            label: t('dashboard.courses'),
+            value: coursesQuery.data?.length ?? '—',
+            icon: 'bi-book',
+            color: 'success',
+            link: '/add-course',
+          },
+        ].map((stat) => (
+          <div key={stat.label} className="col-6 col-md-3">
+            <Link to={stat.link} className="text-decoration-none">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body d-flex align-items-center gap-3">
+                  <div className={`bg-${stat.color} bg-opacity-10 rounded p-3`}>
+                    <i className={`bi ${stat.icon} fs-4 text-${stat.color}`} />
+                  </div>
+                  <div>
+                    <div className="fs-4 fw-bold">{stat.value}</div>
+                    <div className="text-muted small">{stat.label}</div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick actions */}
+      <div className="row g-3 mb-4">
+        <div className="col-12">
+          <h5 className="fw-semibold mb-3">{t('dashboard.quickActions')}</h5>
+        </div>
+        {[
+          { to: '/add-quiz', icon: 'bi-plus-circle', label: t('dashboard.createQuiz'), variant: 'primary' },
+          { to: '/add-course', icon: 'bi-book-half', label: t('dashboard.createCourse'), variant: 'success' },
+          { to: '/quiz-review', icon: 'bi-list-check', label: t('dashboard.manageQuizzes'), variant: 'outline-primary' },
+          { to: '/quiz-report', icon: 'bi-bar-chart-line', label: t('dashboard.viewReports'), variant: 'outline-secondary' },
+        ].map((action) => (
+          <div key={action.to} className="col-6 col-md-3">
+            <Link to={action.to} className={`btn btn-${action.variant} w-100 d-flex flex-column align-items-center gap-1 py-3`}>
+              <i className={`bi ${action.icon} fs-4`} />
+              <span className="small">{action.label}</span>
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent quizzes */}
+      <div className="card border-0 shadow-sm">
+        <div className="card-header bg-transparent d-flex justify-content-between align-items-center">
+          <h6 className="mb-0 fw-semibold">{t('dashboard.recentQuizzes')}</h6>
+          <Link to="/quiz-review" className="btn btn-link btn-sm p-0">{t('common.viewAll')}</Link>
+        </div>
+        <div className="card-body p-0">
+          {quizzesQuery.isLoading ? (
+            <div className="p-3"><LoadingSpinner /></div>
+          ) : (
+            <div className="list-group list-group-flush">
+              {quizzesQuery.data?.slice(0, 5).map((quiz) => (
+                <div key={quiz.id} className="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <div className="fw-semibold">{quiz.title}</div>
+                    <div className="text-muted small">{quiz.questionCount ?? 0} {t('quiz.questions')}</div>
+                  </div>
+                  <div className="d-flex gap-2">
+                    <Link to={`/add-quiz?id=${quiz.id}`} className="btn btn-outline-primary btn-sm">
+                      <i className="bi bi-pencil" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+              {!quizzesQuery.data?.length && (
+                <div className="p-4 text-center text-muted">
+                  <p>{t('dashboard.noQuizzes')}</p>
+                  <Link to="/add-quiz" className="btn btn-primary btn-sm">{t('dashboard.createQuiz')}</Link>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
